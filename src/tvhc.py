@@ -39,7 +39,11 @@ parser.add_argument('--delete', action='store_true',
                     
 parser.add_argument('--noconfirm', action='store_true', 
                     default = False,
-                    help = 'Delete will be performed without interactive question.') 
+                    help = 'Delete will be performed without interactive question.')
+
+parser.add_argument('--wakeup', action='store_true',
+                    default = False,
+                    help = 'Plans to wake up for next record via RTC.') 
                     
                     
 #parser.add_argument('--print', '-p', action = 'store', default = None, choices = ['rec'], help = 'prints a list of items.')
@@ -210,6 +214,9 @@ def get_is_match(item, type, query):
         return True    
     
     for flt in query:
+        if not ':' in flt:
+            return False
+        
         field, pattern = flt.split(':', 1)
         if not get_is_fieldmatch(item, type, field, pattern):
             return False
@@ -220,6 +227,10 @@ def get_is_match(item, type, query):
 
 def find_by_args(client, type, query):
     result = []
+    
+    if type == 'rec' and query[0] == "next":
+        result.append(get_next_record(client))
+    
     items = get_items_of(client, type)
     for item in items:
         is_match = get_is_match(item, type, query)  
@@ -287,6 +298,19 @@ def delete_items(client, items, noconfirm, type):
         print("%s items deleted." % len(items))
     else:
         print("Abort - nothing deleted.")
+
+
+
+
+def get_next_record(client):
+    now = time.time()
+    records = get_records(client)
+    records = sorted(records, key=lambda rec: rec['start'])
+    for rec in records:
+        if float(rec['start']) > now:
+            return rec
+
+    return None
 
 
 # get host and port
