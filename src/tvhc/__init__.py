@@ -7,6 +7,7 @@ from tvhc.htspclient import HtspClient
 __all__ = [
     'htspsocket', 'HtspSocket',
     'htspprotocol', 'HtspProtocol',
-    'htspclient', 'HtspClient']
+    'htspclient', 'HtspClient',
+    'htsputils']
 
 

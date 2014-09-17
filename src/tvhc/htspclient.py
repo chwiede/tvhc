@@ -32,6 +32,13 @@ class HtspClient(object):
         self._socket.set_received_handler(self._received)
         
 
+
+    def try_open(self, host='localhost', user=None, passwd=None, port=9982):
+        try:
+            self.open(host, user, passwd, port)
+            return True
+        except:
+            return False
     
     
     def open(self, host='localhost', user=None, passwd=None, port=9982):
@@ -40,17 +47,12 @@ class HtspClient(object):
         self.host = host
         self.port = port
         
-        # open htsp socket
+        # connect & init routine
         self._socket.open(host, port)
-        
-        # init routine
-        try:
-            self.hello()
-            self.authenticate(user, passwd)
-            self.enable_async_metadata()
-        except RuntimeError:
-            return False
+        self.hello()
             
+        self.authenticate(user, passwd)
+        self.enable_async_metadata()
         
         # wait for init
         with self._initcv:
@@ -58,10 +60,6 @@ class HtspClient(object):
                 self._initcv.wait(5)
                 if not self._initialized:
                     raise Exception("could not initialize :-(")
-        
-        # success
-        return True
-        
         
 
     def _received(self, msg):
