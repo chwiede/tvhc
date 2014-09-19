@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
+import re
 import os
 import sys
 import time
 import tvhclib
+from datetime import datetime
 from tvhc import *
 
 
@@ -30,21 +32,30 @@ def set_wake(persistent, device, timestamp):
 
 
 def extend_parser(parser):
-    parser.add_argument('--device', default=default_device, metavar="PATH",
+    parser.add_argument('--device', '-d', default=default_device, metavar="PATH",
                         help='Defines the RTC device. Default value is "%s"' % default_device)
 
-    parser.add_argument('--persistent', default=default_persistent, metavar="PATH",
+    parser.add_argument('--persistent', '-p', default=default_persistent, metavar="PATH",
                         help='Defines the persistent file. Default value is "%s"' % default_persistent)
     
-    parser.add_argument('--clear', action='store_true', default=False,
-                        help="Clears wakeup on persistent and RTC device.")
+    parser.add_argument('--clear', '-c', action='store_true', default=False,
+                        help='Clears wakeup on persistent and RTC device.')
 
-    parser.add_argument('--timestamp', type=int, default=None,
-                        help="Manually define timestamp. No record will be searched.")
+    parser.add_argument('--time', '-t', type=str, default=None,
+                        help='Manually define time to wakeup. No record will be searched. Give either timestamp or iso-datetime.')
+    
+    parser.add_argument('--ahead', '-a', type=int, default=-1,
+                        help='Wakeup some seconds before. Default is 0 seconds if timestamp given, otherwise %s.' % default_ahead)
 
 
-def print_wake_set(timestamp):
-    print("Wakeup set to %s." % timestamp)
+
+def print_wake_set(timestamp, title = None):
+    dt = datetime.fromtimestamp(timestamp).isoformat()
+
+    if title != None and title != '':
+        print('Wakeup set to %s for "%s".' % (dt, title))
+    else:
+        print('Wakeup set to %s.' % dt)    
     
 
 if __name__ == '__main__':
@@ -61,12 +72,30 @@ if __name__ == '__main__':
         clear_wake(args.persistent, args.device)
         print("Wakeup cleared.")
         
-    elif args.timestamp != None:
-        set_wake(args.persistent, args.device, args.timestamp)
-        print_wake_set(args.timestamp)
+    elif args.time != None:
+        
+        if args.ahead == -1:
+            args.ahead = 0
+        
+        if re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$', args.time):
+            dt = datetime.strptime(args.time, '%Y-%m-%dT%H:%M:%S')
+            timestamp = dt.timestamp()
+        elif re.match(r'^\d+$', args.time):
+            timestamp = int(args.time)
+        else:
+            print("Invalid time! Define integer-timestamp or date and time as ISO 8601.")
+            sys.exit()
+
+        # subtract ahead
+        timestamp = timestamp - args.ahead
+        set_wake(args.persistent, args.device, timestamp)
+        print_wake_set(timestamp)
         
     else:        
         
+        if args.ahead == -1:
+            args.ahead = default_ahead
+
         # connect and get next record
         with HtspClient() as client:
             if not client.try_open(host, port):
@@ -79,7 +108,7 @@ if __name__ == '__main__':
                 print("No planned record found.")
                 sys.exit()
             else:
-                timestamp = int(next_record['start'])
+                timestamp = int(next_record['start']) - args.ahead
                 set_wake(args.persistent, args.device, timestamp)
-                print_wake_set(timestamp)
+                print_wake_set(timestamp, next_record['title'])
     

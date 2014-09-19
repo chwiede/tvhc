@@ -50,7 +50,8 @@ def parse_host(host):
 
 def create_parser(extend=None):
     # Add host argument. This is always available.
-    parser = argparse.ArgumentParser(formatter_class = RawTextHelpFormatter)
+    #parser = argparse.ArgumentParser(formatter_class = RawTextHelpFormatter)
+    parser = argparse.ArgumentParser()
     parser.add_argument("host", default=get_default_host(), nargs="?",
                         help='Defines the host to connect with. Default is "%s".' % get_default_host())
     
