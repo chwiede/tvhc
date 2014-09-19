@@ -5,7 +5,7 @@ import os
 import sys
 import time
 import tvhclib
-from datetime import datetime
+from datetime import datetime, timedelta
 from tvhc import *
 
 
@@ -28,7 +28,7 @@ def set_wake(persistent, device, timestamp):
     
     for path in (persistent, device):
         with open(path, 'w') as f:
-            f.write("%s\n" % timestamp)
+            f.write("%s\n" % int(timestamp))
 
 
 def extend_parser(parser):
@@ -47,15 +47,29 @@ def extend_parser(parser):
     parser.add_argument('--ahead', '-a', type=int, default=-1,
                         help='Wakeup some seconds before. Default is 0 seconds if timestamp given, otherwise %s.' % default_ahead)
 
+    parser.add_argument('--query', '-q', action='store_true', default=False,
+                        help='Shows last known wakeup timestamp.')
 
 
-def print_wake_set(timestamp, title = None):
+def print_wake_set(timestamp, title=None):
     dt = datetime.fromtimestamp(timestamp).isoformat()
 
     if title != None and title != '':
         print('Wakeup set to %s for "%s".' % (dt, title))
     else:
         print('Wakeup set to %s.' % dt)    
+
+
+
+def query(persistent):
+    try:
+        with open(args.persistent, 'r') as f:
+            ts = int(f.readline().strip())
+            return ts
+    
+    except:
+        return None
+    
     
 
 if __name__ == '__main__':
@@ -67,8 +81,27 @@ if __name__ == '__main__':
     # get host & port
     host, port = tvhclib.parse_host(args.host)
     
-    # clear or set?
-    if args.clear:
+    # what's to do?
+    if args.query:
+        
+        ts = query(args.persistent)
+        if ts != None:
+            now = time.time()
+            dt = datetime.fromtimestamp(ts)
+            
+            word = 'was' if ts < now else 'is'
+            delta = timedelta(seconds = int(abs(ts-now)))
+            print("Found timestamp is %s" % ts)
+            print('Wakeup %s planned for %s' % (word, dt.isoformat()))
+            
+            sign = "-" if ts < now else "+"
+            print('Time delta is %s%s' % (sign, delta))
+
+        else:
+            print("No planned wakeup found.") 
+    
+    
+    elif args.clear:
         clear_wake(args.persistent, args.device)
         print("Wakeup cleared.")
         
