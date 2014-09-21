@@ -21,6 +21,7 @@ def clear_wake(persistent, device):
             f.write("0\n")
 
 
+
 def set_wake(persistent, device, timestamp):
     # always clear wake before set!
     # should be done due to some mainboard implementations.
@@ -29,6 +30,7 @@ def set_wake(persistent, device, timestamp):
     for path in (persistent, device):
         with open(path, 'w') as f:
             f.write("%s\n" % int(timestamp))
+
 
 
 def extend_parser(parser):
@@ -49,6 +51,7 @@ def extend_parser(parser):
 
     parser.add_argument('--query', '-q', action='store_true', default=False,
                         help='Shows last known wakeup timestamp.')
+
 
 
 def print_wake_set(timestamp, title=None):
@@ -85,19 +88,11 @@ if __name__ == '__main__':
     if args.query:
         
         ts = query(args.persistent)
-        if ts != None:
-            now = time.time()
+        if ts != None and ts != 0:
             dt = datetime.fromtimestamp(ts)
-            
-            word = 'was' if ts < now else 'is'
-            delta = timedelta(seconds = int(abs(ts-now)))
-            print("Found timestamp is %s" % ts)
-            print('Wakeup %s planned for %s' % (word, dt.isoformat()))
-            
-            sign = "-" if ts < now else "+"
-            print('Time delta is %s%s' % (sign, delta))
-
+            print("Found wakeup for %s" % dt.isoformat())
         else:
+            clear_wake(args.persistent, args.device)
             print("No planned wakeup found.") 
     
     
