@@ -8,6 +8,6 @@ __all__ = [
     'htspsocket', 'HtspSocket',
     'htspprotocol', 'HtspProtocol',
     'htspclient', 'HtspClient',
-    'htsputils']
+    'tvhclib']
 
 

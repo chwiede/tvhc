@@ -4,7 +4,6 @@ import re
 import os
 import sys
 import time
-import tvhclib
 from datetime import datetime, timedelta
 from tvhc import *
 
@@ -30,15 +29,25 @@ if __name__ == '__main__':
         if not client.try_open(host, port):
             tvhclib.open_fail(True)
     
-        if args.query == None or args.query == '':
-            tvhclib.print_client_info(host, port, client)
-
+        # get all records sorted by date with extended data.
         records = client.records.values()
         records = sorted(records, key=lambda rec: rec['start']) 
         records = map(lambda r: tvhclib.extend_record(client, r), records)
         
+        # filter by given query - if any
         fieldtypes = tvhclib.fieldtypes['record']
-        records = tvhclib.search_items(records, fieldtypes, args.query)
+        records = list(tvhclib.search_items(records, fieldtypes, args.query))
         
+        # print with given format
         format = args.format or tvhclib.formats['record']
-        tvhclib.print_items(records, format)
+        proceed, count = tvhclib.print_items(records, format)
+        
+        if not proceed:
+            sys.exit()
+        
+        # what to do next?
+        if args.delete and count > 0:
+            if args.noconfirm or tvhclib.ask_for_delete(count, 'record'):
+                for record_id in map(lambda r: r['id'], records):
+                    client.delete_record(record_id)
+                    print("ID %s deleted." % record_id)

@@ -19,8 +19,15 @@ fieldtypes = {'record': {'id': int,
 
 
 # define formats
-formats = {'record': '{id:>6}: {startdate} - {title} ({length})'}
+formats = {'record': '{id:>6}: {startdate} {shortstate} {title} ({length})'}
 
+
+# define short states
+shortstates = {'completed': '-',
+               'scheduled': '+',
+               'recording': '>',
+               'missed': 'X',
+               'failed': 'X'}
 
 def open_fail(exit):
     print("Could not establish connection...")
@@ -28,6 +35,12 @@ def open_fail(exit):
     if exit:
         sys.exit(1)
     
+
+
+def ask_for_delete(count, type):
+    question = '\nDelete %s %s items? Enter "yes" or "no": ' % (count, type)
+    return input(question).lower() == 'yes'    
+
     
 
 def extend_record(client, record):
@@ -36,6 +49,7 @@ def extend_record(client, record):
     rec['startdate'] = datetime.fromtimestamp(rec['start'])
     rec['duration'] = rec['stop'] - rec['start']
     rec['length'] = timedelta(seconds = rec['stop'] - rec['start'])
+    rec['shortstate'] = shortstates.get(rec['state'], rec['state'])
     return rec
     
 
@@ -134,7 +148,9 @@ def get_date_match(value, pattern):
 
 
 def print_items(items, format):
+    count = 0
     for item in items:
+        count = count + 1
         try:
             if format == 'json':
                 print(item)
@@ -156,10 +172,14 @@ def print_items(items, format):
                 print("  " + key)
                 
             # abort
-            return False
+            return False, count
+        
+    # no items?
+    if count == 0:
+        print("No items to print out.")
 
     # success
-    return True
+    return True, count
 
 
 
@@ -217,4 +237,4 @@ def append_default_arguments(parser):
     parser.add_argument('--noconfirm', action='store_true', 
                         default = False,
                         help = 'Delete will be performed without interactive question.')
-    
+
