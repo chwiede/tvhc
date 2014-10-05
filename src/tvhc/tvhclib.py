@@ -98,9 +98,6 @@ def get_is_fieldmatch(item, fieldtypes, field, pattern):
         match = re.search(pattern, item[field], re.IGNORECASE)
         return match != None
     
-    # fallback
-    return False 
-
 
 
 def get_int_match(value, pattern):
@@ -145,6 +142,21 @@ def get_date_match(value, pattern):
 
     return False
 
+
+def get_wakedup(persistent_file, max_boot_time=300):
+    timestamp = query_wake_timestamp(persistent_file)
+    boot_time = time.time() - timestamp
+    boot_time_ok = boot_time > 0 and boot_time < max_boot_time    
+    return boot_time_ok
+
+
+def query_wake_timestamp(persistent_file):
+    try:
+        with open(persistent_file, 'r') as f:
+            return int(f.readline().strip())
+    
+    except:
+        return 0
 
 
 def print_items(items, format):

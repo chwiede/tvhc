@@ -4,12 +4,11 @@ import re
 import os
 import sys
 import time
-import tvhclib
 from datetime import datetime, timedelta
 from tvhc import *
 
 
-default_ahead = 300
+default_ahead = 600
 default_persistent = '/var/tmp/tvhc_wakeup'
 default_device = '/sys/class/rtc/rtc0/wakealarm'
 
@@ -32,7 +31,6 @@ def set_wake(persistent, device, timestamp):
             f.write("%s\n" % int(timestamp))
 
 
-
 def extend_parser(parser):
     parser.add_argument('--device', '-d', default=default_device, metavar="PATH",
                         help='Defines the RTC device. Default value is "%s"' % default_device)
@@ -52,6 +50,8 @@ def extend_parser(parser):
     parser.add_argument('--query', '-q', action='store_true', default=False,
                         help='Shows last known wakeup timestamp.')
 
+    parser.add_argument('--waked', '-w', action='store_true', default=False,
+                        help='Guess if machine was waked up for a record.')
 
 
 def print_wake_set(timestamp, title=None):
@@ -64,17 +64,6 @@ def print_wake_set(timestamp, title=None):
 
 
 
-def query(persistent):
-    try:
-        with open(args.persistent, 'r') as f:
-            ts = int(f.readline().strip())
-            return ts
-    
-    except:
-        return None
-    
-    
-
 if __name__ == '__main__':
     
     # parse arguments
@@ -85,10 +74,15 @@ if __name__ == '__main__':
     host, port = tvhclib.parse_host(args.host)
     
     # what's to do?
-    if args.query:
-        
-        ts = query(args.persistent)
-        if ts != None and ts != 0:
+    if args.waked:
+        if tvhclib.get_wakedup(args.persistent):
+            print('1: Automatic wakeup.')                 
+        else:
+            print('0: No automatic wakeup detected.')
+    
+    elif args.query:        
+        ts = tvhclib.query_wake_timestamp(args.persistent)
+        if ts != 0:
             dt = datetime.fromtimestamp(ts)
             print("Found wakeup for %s" % dt.isoformat())
         else:
@@ -102,6 +96,8 @@ if __name__ == '__main__':
         
     elif args.time != None:
         
+        # Attention! 
+        # different handling for args.ahead than planned record...
         if args.ahead == -1:
             args.ahead = 0
         
@@ -121,6 +117,8 @@ if __name__ == '__main__':
         
     else:        
         
+        # Attention! 
+        # different handling for args.ahead than manually defined time...
         if args.ahead == -1:
             args.ahead = default_ahead
 
