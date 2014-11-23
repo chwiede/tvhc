@@ -1,0 +1,37 @@
+# Maintainer: Christoph Wiedemann <chwiede@gmail.com>
+pkgname=python-tvhc
+pkgver=0.1
+pkgrel=1
+pkgdesc="Simple python implemented client for tvheadend."
+arch=('i686' 'x86_64')
+url="https://github.com/chwiede/tvhc"
+license=('MIT')
+groups=()
+depends=('python')
+makedepends=()
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=(!emptydirs)
+install=
+source=()
+md5sums=()
+
+package() {
+  gittarget="$srcdir/$pkgname-$pkgver"
+  
+  if [[ -d "$gittarget" ]]; then
+    cd "$gittarget$" && git pull origin
+  else
+  	git clone "$url" "$gittarget"
+  fi
+  
+  cd "$srcdir/$pkgname-$pkgver/src"
+  python setup.py install --root="$pkgdir/" --optimize=1
+}
+
+pkgver() {
+  cd "$pkgname"
+  git describe --long | sed -r 's/([^-]*-g)/r\1/;s/-/./g'
+}

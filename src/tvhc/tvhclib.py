@@ -29,12 +29,13 @@ shortstates = {'completed': '-',
                'missed': 'X',
                'failed': 'X'}
 
+
 def open_fail(exit):
     print("Could not establish connection...")
     
     if exit:
-        sys.exit(1)
-    
+        sys.exit(1)    
+
 
 
 def ask_for_delete(count, type):
@@ -52,6 +53,7 @@ def extend_record(client, record):
     rec['shortstate'] = shortstates.get(rec['state'], rec['state'])
     return rec
     
+    
 
 def get_next_record(client, relatime=time.time()):
     records = client.records.values()
@@ -64,11 +66,11 @@ def get_next_record(client, relatime=time.time()):
     
 
 
-
 def search_items(items, fieldtypes, queries):
     for item in items:
         if queries == None or get_is_match(item, fieldtypes, queries):
             yield item
+
 
 
 def get_is_match(item, fieldtypes, queries):
@@ -143,11 +145,13 @@ def get_date_match(value, pattern):
     return False
 
 
+
 def get_wakedup(persistent_file, max_boot_time=300):
     timestamp = query_wake_timestamp(persistent_file)
     boot_time = time.time() - timestamp
     boot_time_ok = boot_time > 0 and boot_time < max_boot_time    
     return boot_time_ok
+
 
 
 def query_wake_timestamp(persistent_file):
@@ -157,6 +161,7 @@ def query_wake_timestamp(persistent_file):
     
     except:
         return 0
+
 
 
 def print_items(items, format):

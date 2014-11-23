@@ -7,11 +7,10 @@ import time
 from datetime import datetime, timedelta
 from tvhc import *
 
-
+# define default values
 default_ahead = 600
 default_persistent = '/var/tmp/tvhc_wakeup'
 default_device = '/sys/class/rtc/rtc0/wakealarm'
-
 
 
 def clear_wake(persistent, device):
