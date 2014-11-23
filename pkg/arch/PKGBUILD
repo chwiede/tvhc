@@ -22,13 +22,27 @@ package() {
   gittarget="$srcdir/$pkgname-$pkgver"
   
   if [[ -d "$gittarget" ]]; then
-    cd "$gittarget$" && git pull origin
+    cd "$gittarget" && git pull origin
   else
   	git clone "$url" "$gittarget"
   fi
   
+  # go to source directory
   cd "$srcdir/$pkgname-$pkgver/src"
+  
+  # setup python stuff
   python setup.py install --root="$pkgdir/" --optimize=1
+  
+  # copy tools
+  mkdir -p $pkgdir/usr/lib/tvhc
+  cp tvhcrec.py $pkgdir/usr/lib/tvhc/ 
+  cp tvhcwake.py $pkgdir/usr/lib/tvhc/ 
+  
+  # copy services
+  mkdir -p $pkgdir/usr/lib/systemd/system
+  cp $startdir/tvhc-wakeup.service $pkgdir/usr/lib/systemd/system/
+  
+  
 }
 
 pkgver() {

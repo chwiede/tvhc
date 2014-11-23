@@ -1,0 +1,10 @@
+[Unit]
+Description=TVHC RTC Wake Up
+After=tvheadend.service
+
+[Service]
+RemainAfterExit=yes
+ExecStop=/usr/lib/tvhc/tvhcwake.py
+
+[Install]
+WantedBy=multi-user.target
