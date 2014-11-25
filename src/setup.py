@@ -6,5 +6,5 @@ setup(name='tvhc',
       version='0.1',
       description='Simple python implementation of HTSP-Protocol (tvheadend)',
       url='http://www.github.com/chwiede/tvhc',
-      packages = ['tvhc']
-      )
+      packages=['tvhc']
+)
