@@ -38,9 +38,12 @@ package() {
   cp tvhcrec.py $pkgdir/usr/lib/tvhc/ 
   cp tvhcwake.py $pkgdir/usr/lib/tvhc/ 
   
+  # move to package folder
+  cd "$srcdir/$pkgname-$pkgver/pkg"
+
   # copy services
   mkdir -p $pkgdir/usr/lib/systemd/system
-  cp $startdir/tvhc-wakeup.service $pkgdir/usr/lib/systemd/system/
+  cp ./deploy/tvhc-wakeup.service $pkgdir/usr/lib/systemd/system/
   
   
 }
