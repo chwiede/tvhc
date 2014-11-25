@@ -57,6 +57,9 @@ target/
 .project
 .pydevproject
 
+# IntelliJ Idea Project Files
+.idea/
+
 # Arch linux package stuff
 pkg/arch/*.xz
 pkg/arch/pkg
