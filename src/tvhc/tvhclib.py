@@ -49,7 +49,7 @@ def extend_record(client, record):
     rec['channelname'] = client.channels[rec['channel']]['channelName']
     rec['startdate'] = datetime.fromtimestamp(rec['start'])
     rec['duration'] = rec['stop'] - rec['start']
-    rec['length'] = timedelta(seconds = rec['stop'] - rec['start'])
+    rec['length'] = timedelta(seconds=rec['stop'] - rec['start'])
     rec['shortstate'] = shortstates.get(rec['state'], rec['state'])
     return rec
     
@@ -64,6 +64,12 @@ def get_next_record(client, relatime=time.time()):
     
     return None
     
+
+def get_active_records(client):
+    records = client.records.values()
+    for rec in records:
+        if rec['state'] == 'recording':
+            yield rec
 
 
 def search_items(items, fieldtypes, queries):
