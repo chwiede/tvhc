@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
-import time
 import socket
 import threading
-#from .htspprotocol import HtspProtocol
-#from .htspsocket import HtspSocket    
+import logging
 from tvhc import *
 
     
@@ -70,9 +68,8 @@ class HtspClient(object):
             if hasattr(self, method):
                 self.__getattribute__(method)(msg)
             else:
-                print("method %s not found." % method)
-                raise Exception("method %s not found." % method)
-        
+                logging.warning("method %s not found." % method)
+
         else:
             print("unkown message received: %s" % msg)
 
@@ -81,6 +78,10 @@ class HtspClient(object):
         id = msg['channelId']
         self.channels[id] = msg
 
+
+    def channelUpdate(self, msg):
+        id = msg['channelId']
+        self.channels[id] = msg
     
     
     def dvrEntryAdd(self, msg):
