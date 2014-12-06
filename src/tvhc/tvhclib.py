@@ -155,7 +155,7 @@ def get_date_match(value, pattern):
 def get_wakedup(persistent_file, max_boot_time=300):
     timestamp = query_wake_timestamp(persistent_file)
     boot_time = time.time() - timestamp
-    boot_time_ok = boot_time > 0 and boot_time < max_boot_time    
+    boot_time_ok = boot_time > 0 and boot_time < max_boot_time
     return boot_time_ok
 
 

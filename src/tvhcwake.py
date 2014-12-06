@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from tvhc import *
 
 # define default values
-default_ahead = 600
+default_ahead = 300
 default_persistent = '/var/tmp/tvhc_wakeup'
 default_device = '/sys/class/rtc/rtc0/wakealarm'
 
@@ -110,7 +110,7 @@ if __name__ == '__main__':
             sys.exit()
 
         # subtract ahead
-        timestamp = timestamp - args.ahead
+        timestamp -= args.ahead
         set_wake(args.persistent, args.device, timestamp)
         print_wake_set(timestamp)
         
