@@ -13,7 +13,7 @@ fieldtypes = {'record': {'id': int,
                          'start': int,
                          'stop': int,
                          'duration': int,
-                         'startdate': datetime 
+                         'startdate': datetime
                          }
               }
 
@@ -32,17 +32,17 @@ shortstates = {'completed': '-',
 
 def open_fail(exit):
     print("Could not establish connection...")
-    
+
     if exit:
-        sys.exit(1)    
+        sys.exit(1)
 
 
 
 def ask_for_delete(count, type):
     question = '\nDelete %s %s items? Enter "yes" or "no": ' % (count, type)
-    return input(question).lower() == 'yes'    
+    return input(question).lower() == 'yes'
 
-    
+
 
 def extend_record(client, record):
     rec = record.copy()
@@ -52,18 +52,18 @@ def extend_record(client, record):
     rec['length'] = timedelta(seconds=rec['stop'] - rec['start'])
     rec['shortstate'] = shortstates.get(rec['state'], rec['state'])
     return rec
-    
-    
+
+
 
 def get_next_record(client, relatime=time.time()):
     records = client.records.values()
-    records = sorted(records, key=lambda rec: rec['start'])    
+    records = sorted(records, key=lambda rec: rec['start'])
     for rec in records:
         if float(rec['start']) > time.time():
             return rec
-    
+
     return None
-    
+
 
 def get_active_records(client):
     records = client.records.values()
@@ -81,12 +81,12 @@ def search_items(items, fieldtypes, queries):
 
 def get_is_match(item, fieldtypes, queries):
     if queries and queries[0] == "all":
-        return True    
-    
+        return True
+
     for query in queries:
-        if not ':' in query:
+        if ':' not in query:
             return False
-        
+
         field, pattern = query.split(':', 1)
         if not get_is_fieldmatch(item, fieldtypes, field, pattern):
             return False
@@ -98,14 +98,14 @@ def get_is_match(item, fieldtypes, queries):
 def get_is_fieldmatch(item, fieldtypes, field, pattern):
     if fieldtypes.get(field, None) == int:
         return get_int_match(item[field], pattern)
-    
+
     elif fieldtypes.get(field, None) == datetime:
         return get_date_match(item[field], pattern)
-    
+
     else:
         match = re.search(pattern, item[field], re.IGNORECASE)
         return match != None
-    
+
 
 
 def get_int_match(value, pattern):
@@ -126,12 +126,12 @@ def repl_daterel(match):
         'w': timedelta(weeks=1),
         'y': timedelta(days=365)
     }
-    
+
     delta = timedeltas[match.group(2)]
     count = int(match.group(1))
     date = datetime.now() + delta * count
     return date.strftime('%Y-%m-%d %H:%M:%S')
-    
+
 
 
 def get_date_match(value, pattern):
@@ -139,24 +139,27 @@ def get_date_match(value, pattern):
     pattern = re.sub(r'([+-]\d+)([mhdwy])', repl_daterel, pattern.lower())
 
     if pattern[0] == ">":
-        date = datetime.strptime(pattern[1:], '%Y-%m-%d %H:%M:%S') 
+        date = datetime.strptime(pattern[1:], '%Y-%m-%d %H:%M:%S')
         return value > date
     elif pattern[0] == "<":
-        date = datetime.strptime(pattern[1:], '%Y-%m-%d %H:%M:%S') 
+        date = datetime.strptime(pattern[1:], '%Y-%m-%d %H:%M:%S')
         return value < date
     else:
-        date = datetime.strptime(pattern[1:], '%Y-%m-%d %H:%M:%S') 
+        date = datetime.strptime(pattern[1:], '%Y-%m-%d %H:%M:%S')
         return value == date
 
     return False
 
 
 
-def get_wakedup(persistent_file, max_boot_time=300):
+def get_wakedup(persistent_file, max_boot_time=600, detail=False):
     timestamp = query_wake_timestamp(persistent_file)
     boot_time = time.time() - timestamp
-    boot_time_ok = boot_time > 0 and boot_time < max_boot_time
-    return boot_time_ok
+    boot_time_ok = 0 < boot_time < max_boot_time
+    if not detail:
+        return boot_time_ok
+    else:
+        return boot_time_ok, timestamp, boot_time
 
 
 
@@ -164,7 +167,7 @@ def query_wake_timestamp(persistent_file):
     try:
         with open(persistent_file, 'r') as f:
             return int(f.readline().strip())
-    
+
     except:
         return 0
 
@@ -178,25 +181,25 @@ def print_items(items, format):
             if format == 'json':
                 print(item)
                 print("")
-                
+
             elif format == 'full':
                 keys = sorted(item.keys())
-                
+
                 for key in keys:
-                    print('{0:<20}{1}'.format(key, item[key]))                    
+                    print('{0:<20}{1}'.format(key, item[key]))
                 print("")
-                
+
             else:
                 print(format.format(**item))
-                
+
         except KeyError:
             print("KeyError in format. Available fields are: ")
             for key in item:
                 print("  " + key)
-                
+
             # abort
             return False, count
-        
+
     # no items?
     if count == 0:
         print("No items to print out.")
@@ -229,10 +232,10 @@ def create_parser(extend=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("host", default=get_default_host(), nargs="?",
                         help='Defines the host to connect with. Default is "%s".' % get_default_host())
-    
+
     if extend != None:
         extend(parser)
-    
+
     return parser
 
 
@@ -249,15 +252,14 @@ def print_client_info(host, port, client):
 
 
 def append_default_arguments(parser):
-    parser.add_argument('--query', '-q', type = str, 
+    parser.add_argument('--query', '-q', type = str,
                         action = 'append',
                         help = 'One or more queries like "field:value". String values are compared by regex. Use < for lower, > for greater and +/- for relative time deltas.')
-    
+
     parser.add_argument('--format', '-f', type = str,
                         default = None,
                         help = 'Defines print-format for found items. Format is described in python docs for string.format(). Available Templates are "full" or "json".')
-    
-    parser.add_argument('--noconfirm', action='store_true', 
+
+    parser.add_argument('--noconfirm', action='store_true',
                         default = False,
                         help = 'Delete will be performed without interactive question.')
-
